@@ -10,7 +10,7 @@ public class MultiAcceptor implements Runnable{
     // cpu线程数相同多work线程
     int workCount =Runtime.getRuntime().availableProcessors();
     SubReactor[] workThreadHandlers = new SubReactor[workCount];
-    ExecutorService executorService = Executors.newFixedThreadPool(workCount);
+
     volatile int nextHandler = 0;
 
     public MultiAcceptor(ServerSocketChannel serverSocket) {
@@ -18,7 +18,8 @@ public class MultiAcceptor implements Runnable{
         nextHandler = 0;
         for (int i = 0; i < workThreadHandlers.length; i++) {
             try {
-                workThreadHandlers[i] = new SubReactor();
+                ExecutorService executorService = Executors.newFixedThreadPool(1);
+                workThreadHandlers[i] = new SubReactor(executorService);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -39,7 +40,7 @@ public class MultiAcceptor implements Runnable{
                     if (nextHandler >= workThreadHandlers.length) {
                         nextHandler = 0;
                     }
-                    executorService.submit(work);
+                    work.executor();
                 }
             }
         } catch (Exception e) {
