@@ -2,7 +2,6 @@ package com.songwy.utils.redis;
 
 import com.songwy.utils.redis.bean.Person;
 
-import com.sun.deploy.util.StringUtils;
 import redis.clients.jedis.Jedis;
 
 import java.lang.reflect.Field;
