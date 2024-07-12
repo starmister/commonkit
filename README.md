@@ -1,68 +1,21 @@
 # Page
 
-jdhhgksksnkjkgksdigri
+## 健康干预接口
 
-#### ffjgkdsgdksjgkds
+<mark style="color:green;">`POST`</mark> `/health`
 
-1. ssdgfsdgksd
-2. dsgkdsgkgksd
-3. sdjgsdjgsdgdsgkgks&#x20;
+<
 
-```bash
-// Some code
-sudo apt-get update
-sudo apt-get install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
+根据请求参数（请求时间和userId）：
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+1. 获取最新一条干预记录数据，拿到干预周期
+2. 如果没有记录，说明是第一次请求，以请求时间为准，返回相关数据
+3. 如果请求时间在干预周期内，说明是在干预周期内发起请求的，直接返回干预开始时间的检查数据
+4. 如果请求时间>干预周期，说明是上一次的干预周期，以请求时间为准，生成新数据
+5. 返回数据之前，需要插入一条干预记录，供获取检查列表使用
+6. 返回打卡任务
 
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
-
-```
-
-1. :joy:sfgskdgkdsg
-
-sdhksdhgjskdghsdhgsdhgdsghjdsghruowu
-
-fdhkfgkfhgfghfhglghlfgl
-
-dfhgkfkfdhgfjhgfkhgfhg
-
-<table data-full-width="true"><thead><tr><th></th><th></th><th></th><th></th></tr></thead><tbody><tr><td>a</td><td>b</td><td>c</td><td></td></tr><tr><td>d</td><td>e</td><td>f</td><td></td></tr><tr><td>g</td><td>h</td><td>g</td><td></td></tr></tbody></table>
-
-<table data-view="cards"><thead><tr><th></th><th></th><th></th></tr></thead><tbody><tr><td>dhfgkhksdjhkdshlsghsdkhgskdjhgksdjg</td><td></td><td></td></tr><tr><td>sgsg</td><td>sdgsdgsdgsgsgsdg</td><td></td></tr><tr><td>sgsdgsdg</td><td>sdgsdg</td><td></td></tr></tbody></table>
-
-***
-
-{% tabs %}
-{% tab title="First Tab" %}
-gjzdjhgdsjgfdsghj
-{% endtab %}
-
-{% tab title="Second Tab" %}
-sdgsdg
-{% endtab %}
-
-{% tab title="Untisdgtled" %}
-
-{% endtab %}
-{% endtabs %}
-
-<img src=".gitbook/assets/file.excalidraw.svg" alt="" class="gitbook-drawing">
-
-## Create a new user
-
-<mark style="color:green;">`POST`</mark> `/users`
-
-\<Description of the endpoint>
+\>
 
 **Headers**
 
@@ -73,12 +26,19 @@ sdgsdg
 
 **Body**
 
-| Name   | Type   | Description      |
-| ------ | ------ | ---------------- |
-| `name` | string | Name of the user |
-| `age`  | number | Age of the user  |
+| Name   | Type   | Description |
+| ------ | ------ | ----------- |
+| today  | string | 今天请求日期      |
+| userId | string | 用户Id        |
 
 **Response**
+
+| Name                | Type   | Description |
+| ------------------- | ------ | ----------- |
+| medicalOrganization | string | 干预机构        |
+| startDate           | string | 干预周期-开始时间   |
+| endDate             | string | 干预周期-结束时间   |
+| healthAdvice        | json   | 健康建议        |
 
 {% tabs %}
 {% tab title="200" %}
@@ -100,31 +60,98 @@ sdgsdg
 {% endtab %}
 {% endtabs %}
 
+
+
+## 获取健康干预列表
+
+GET `/users`
+
+<
+
+1\. 根据用户名获取干预数据
+
+\>
+
+**Headers**
+
+| Name          | Value              |
+| ------------- | ------------------ |
+| Content-Type  | `application/json` |
+| Authorization | `Bearer <token>`   |
+
+**Body**
+
+| Name     | Type   | Description      |
+| -------- | ------ | ---------------- |
+| username | string | Name of the user |
+
+**Response**
+
+
+
+| Name                | Type | Description |
+| ------------------- | ---- | ----------- |
+| medicalOrganization |      |             |
+| clockDays           |      |             |
+| status              |      |             |
+| startDate           |      |             |
+| endDate             |      |             |
+
 {% tabs %}
-{% tab title="JavaScript" %}
-```javascript
-const message = "hello world";
-console.log(message);
+{% tab title="200" %}
+```json
+{
+  "id": 1,
+  "name": "John",
+  "age": 30
+}
 ```
 {% endtab %}
 
-{% tab title="Python" %}
-```python
-message = "hello world"
-print(message)
-```
-{% endtab %}
-
-{% tab title="Ruby" %}
-```ruby
-message = "hello world"
-puts message
+{% tab title="400" %}
+```json
+{
+  "error": "Invalid request"
+}
 ```
 {% endtab %}
 {% endtabs %}
 
+## 打卡干预任务接口
+
+## 健康任务
+
+1. 根据请求时间+userId
+   1. 获取任务记录表中的周期时间，如果请求时间属于\[周期开始时间，周期结束时间]，说明是在周期内无需生成；否则：
+   2. 根据用户信息判断是否生成高血压、糖尿病任务；
+   3. 根据效果问卷规则是否生成效果问卷；效果问卷内容来源，<mark style="color:blue;">**需要从素问拿到主诉分词进行填充及逻辑处理；**</mark>
+
+## 填写健康任务
+
+1. 根据userId+问卷code
+   1. 获取最新一条任务记录；
+      1. 如果是高血压、糖药病任务，填写完之后，需要生成相关结果外，还需把血压数值填写到统计记录表中；
+      2. 如果是效果问卷，如果超过3天未填写，不展示；但由系统去填写。这里需要维护状态字段进行区分；
+
+## 任务记录
+
+1. 根据userId获取状态是已填写的任务记录
+
+## 任务详情
+
+1. 根据userId和任务类型/code获取任务的详情
 
 
-1.
-2. ![](.gitbook/assets/section1-main-item2.png)
-3. sdguisdgisdgi
+
+
+
+
+
+
+
+
+
+
+
+
+
